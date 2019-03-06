@@ -26,9 +26,11 @@
   "homepage": "https://github.com/fluencelabs/fluence#readme",
   "dependencies": {
     "@types/bootstrap": "4.2.1",
+    "@types/promise.prototype.finally": "2.0.3",
     "bootstrap": "4.3.1",
     "jquery": "3.3.1",
     "fluence": "0.1.16",
+    "fluence-monitoring": "0.0.31",
     "popper.js": "1.14.4"
   },
   "devDependencies": {

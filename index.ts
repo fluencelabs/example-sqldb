@@ -16,16 +16,8 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import * as fluence from "fluence";
+import * as monitoring from "fluence-monitoring";
 import {AppSession, Result} from "fluence";
-import {getNodeStatus} from "fluence-monitoring";
-
-/**
- * The address of one node of a real-time cluster.
- */
-interface Addr {
-    host: string,
-    port: number
-}
 
 /**
  * A status info of one node of a real-time cluster.
@@ -76,9 +68,9 @@ class DbClient {
     /**
      * Gets status of all nodes.
      */
-    async status(): Promise<any[]> {
+    async status(appId: string): Promise<any[]> {
         return Promise.all(this.appSession.workerSessions.map((session) => {
-            return getNodeStatus(session.node);
+            return monitoring.getWorkerStatus(session.node, parseInt(appId));
         }));
     }
 }
@@ -126,10 +118,6 @@ function shorten(str: string, size: number): string {
     return str.substring(0, size) + "..." + str.substring(str.length - size, str.length);
 }
 
-interface Config {
-    addrs: Addr[]
-}
-
 let newLine = String.fromCharCode(13, 10);
 let sep = "**************************";
 
@@ -144,39 +132,22 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     function updateStatus() {
         if (updating) return;
         updating = true;
-        client.status().then((r) => {
-            let addrs = client.appSession.workerSessions.map((s: any) => s.session.tm.addr);
-            statusField.innerHTML = r.map((status, idx) => {
-                let addr = addrs[idx];
+        client.status(appId).then((r) => {
+            statusField.innerHTML = r.map((resp) => {
+                let info = resp.result;
+                let addr = info.node_info.listen_addr;
                 // if there is a response from a node
-                if (status.workers) {
-                    let workers: any[] = status.workers;
-                    let worker = workers.find((w) => w.appId === parseInt(appId));
-                    if (worker) {
-                        if (!worker.isHealthy) {
-                            return genErrorStatus(addr, "worker is not healthy")
-                        } else if (worker.tendermint.http.HttpCheckStatus) {
-                            let syncInfo = worker.tendermint.http.HttpCheckStatus.data.sync_info;
-                            let status: Status = {
-                                addr: addr,
-                                block_hash: shorten(syncInfo.latest_block_hash as string, 10),
-                                app_hash: shorten(syncInfo.latest_app_hash as string, 10),
-                                block_height: syncInfo.latest_block_height as number
-                            };
-                            return genStatus(status)
-                        } else if (worker.tendermint.http.HttpCheckFailed) {
-                            return genErrorStatus(addr, `worker http check failed: ${worker.worker.http.HttpCheckFailed.cause}`)
-                        } else {
-                            return genErrorStatus(addr, "worker is not healthy")
-                        }
-                    } else {
-                        return genErrorStatus(addr, "there is no worker with such appId")
-                    }
-                } else {
-                    return genErrorStatus(addr, status.causeBy)
-                }
+
+                let syncInfo = info.sync_info;
+                let status: Status = {
+                    addr: addr,
+                    block_hash: shorten(syncInfo.latest_block_hash as string, 10),
+                    app_hash: shorten(syncInfo.latest_app_hash as string, 10),
+                    block_height: syncInfo.latest_block_height as number
+                };
+                return genStatus(status)
             }).join("\n");
-        }).finally(() => updating = false)
+        }).catch((e) => genErrorStatus("", e)).finally(() => updating = false)
     }
 
     // send request with query to a cluster
