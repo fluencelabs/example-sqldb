@@ -83,6 +83,8 @@ class DbClient {
     }
 }
 
+let updating = false;
+
 let btn = document.getElementById("submitQuery") as HTMLButtonElement;
 let updateStatusBtn = document.getElementById("updateStatus") as HTMLButtonElement;
 let resultField: HTMLTextAreaElement = window.document.getElementById("result") as HTMLTextAreaElement;
@@ -140,6 +142,8 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     let client = new DbClient(sessions);
 
     function updateStatus() {
+        if (updating) return;
+        updating = true;
         client.status().then((r) => {
             let addrs = client.appSession.workerSessions.map((s: any) => s.session.tm.addr);
             statusField.innerHTML = r.map((status, idx) => {
@@ -172,7 +176,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
                     return genErrorStatus(addr, status.causeBy)
                 }
             }).join("\n");
-        })
+        }).finally(() => updating = false)
     }
 
     // send request with query to a cluster
@@ -198,7 +202,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     });
 
     //updates status of nodes every one second
-    let timer = setInterval(updateStatus, 1000);
+    let timer = setInterval(updateStatus, 500);
 
     //stops or starts the timer for status updates
     updateStatusBtn.addEventListener("click", () => {
@@ -208,7 +212,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
             clearInterval(timer);
             updateStatusBtn.value = start;
         } else {
-            timer = setInterval(updateStatus, 1000);
+            timer = setInterval(updateStatus, 500);
             updateStatusBtn.value = stop;
         }
 
