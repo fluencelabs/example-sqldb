@@ -91,6 +91,19 @@ let contractAddress: HTMLInputElement = window.document.getElementById("contract
 let appId: HTMLInputElement = window.document.getElementById("app-id") as HTMLInputElement;
 let ethereumAddress: HTMLInputElement = window.document.getElementById("ethereum-address") as HTMLInputElement;
 
+let examplesList = (document.getElementById("tips") as HTMLElement).getElementsByTagName("li");
+for (let li of examplesList) {
+    li.style.textDecoration = "underline";
+    li.style.cursor = "pointer";
+    li.addEventListener("click", function() {
+        if (inputField.innerHTML) {
+            inputField.innerHTML = inputField.innerHTML + "\n" + this.innerHTML;
+        } else {
+            inputField.innerHTML = this.innerHTML;
+        }
+    });
+}
+
 function genStatus(status: Status) {
     return `<div class="m-2 rounded border list-group-item-info p-2">
                 <label class="text-dark ml-2 mb-0" style="font-size: 0.8rem">${status.addr}</label>
