@@ -51,13 +51,13 @@ class DbClient {
 
     /**
      * Submits queries to the real-time cluster and waits for a result.
-     * @param queries list of queries to invoke
+     * @param queries list of queries to request
      */
     async submitQuery(queries: string[]): Promise<Promise<Result>[]> {
         let workerSession = this.appSession.workerSessions[this.nextNodeIndex()];
         return queries.map((q) => {
             console.log("query: " + q);
-            let res = workerSession.session.invoke(q).result();
+            let res = workerSession.session.request(q).result();
             res.then((r: Result) => {
                 return r.asString()
             });
