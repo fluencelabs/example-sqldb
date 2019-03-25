@@ -86,18 +86,23 @@ if (appIdFromParams) {
     pk ? getValuesAndPrepare(appIdFromParams, pk) : getValuesAndPrepare(appIdFromParams);
 }
 
-let examplesList = (document.getElementById("tips") as HTMLElement).getElementsByTagName("li");
-for (let li of examplesList) {
-    li.style.textDecoration = "underline";
-    li.style.cursor = "pointer";
-    li.addEventListener("click", function() {
-        if (inputField.innerHTML) {
-            inputField.innerHTML = inputField.innerHTML + "\n" + this.innerHTML;
-        } else {
-            inputField.innerHTML = this.innerHTML;
-        }
-    });
+function addEventForTips() {
+    let examplesList = (document.getElementById("tips") as HTMLElement).getElementsByTagName("li");
+    for (let li of examplesList) {
+        li.style.textDecoration = "underline";
+        li.style.cursor = "pointer";
+        li.addEventListener("click", function() {
+            if (inputField.value) {
+                inputField.value = inputField.value + "\n" + this.innerHTML;
+            } else {
+                inputField.value = this.innerHTML;
+            }
+        });
+    }
 }
+
+addEventForTips();
+
 
 function genStatus(status: Status) {
     return `<div class="m-2 rounded border list-group-item-info p-2">
