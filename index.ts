@@ -16,7 +16,6 @@
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import * as fluence from "fluence";
-import * as monitoring from "fluence-monitoring";
 import {AppSession, Result} from "fluence";
 
 /**
@@ -33,19 +32,8 @@ class DbClient {
 
     // sessions for every member of a cluster
     readonly appSession: AppSession;
-    private readonly size: number;
-    private counter: number;
-
-    // round robin counter over app sessions
-    private nextNodeIndex(): number {
-        this.counter = (this.counter + 1) % this.size;
-        return this.counter;
-    }
 
     constructor(session: fluence.AppSession) {
-        this.size = session.workerSessions.length;
-        this.counter = 0;
-
         this.appSession = session;
     }
 
@@ -54,10 +42,9 @@ class DbClient {
      * @param queries list of queries to request
      */
     async submitQuery(queries: string[]): Promise<Promise<Result>[]> {
-        let workerSession = this.appSession.workerSessions[this.nextNodeIndex()];
         return queries.map((q) => {
             console.log("query: " + q);
-            let res = workerSession.session.request(q).result();
+            let res = this.appSession.request(q).result();
             res.then((r: Result) => {
                 return r.asString()
             });
@@ -68,10 +55,8 @@ class DbClient {
     /**
      * Gets status of all nodes.
      */
-    async status(appId: string): Promise<any[]> {
-        return Promise.all(this.appSession.workerSessions.map((session) => {
-            return monitoring.getWorkerStatus(session.node, parseInt(appId));
-        }));
+    async status(): Promise<any[]> {
+        return this.appSession.getWorkersStatus()
     }
 }
 
@@ -90,6 +75,12 @@ let metamaskWrapper = document.getElementById("use-metamask-div") as HTMLDivElem
 let contractAddress: HTMLInputElement = window.document.getElementById("contract-address") as HTMLInputElement;
 let appId: HTMLInputElement = window.document.getElementById("app-id") as HTMLInputElement;
 let ethereumAddress: HTMLInputElement = window.document.getElementById("ethereum-address") as HTMLInputElement;
+
+const urlParams = new URLSearchParams(window.location.search);
+const appIdFromParams = urlParams.get('appId');
+if (appIdFromParams) {
+    getValuesAndPrepare(appIdFromParams)
+}
 
 let examplesList = (document.getElementById("tips") as HTMLElement).getElementsByTagName("li");
 for (let li of examplesList) {
@@ -145,7 +136,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     function updateStatus() {
         if (updating) return;
         updating = true;
-        client.status(appId).then((r) => {
+        client.status().then((r) => {
             statusField.innerHTML = r.map((resp) => {
                 let info = resp.result;
                 let addr = info.node_info.listen_addr;
@@ -160,7 +151,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
                 };
                 return genStatus(status)
             }).join("\n");
-        }).catch((e) => genErrorStatus("", e)).finally(() => updating = false)
+        }).catch((e) => genErrorStatus(e.apiAddr + ":" + e.apiPort, e)).finally(() => updating = false)
     }
 
     // send request with query to a cluster
@@ -203,8 +194,8 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     });
 }
 
-startBtn.addEventListener("click", () => {
-    if (contractAddress.value && appId.value && ethereumAddress.value) {
+function getValuesAndPrepare(appIdStr: string) {
+    if (contractAddress.value && appIdStr && ethereumAddress.value) {
         let ethUrl = metamaskCheckbox.checked ? undefined : ethereumAddress.value;
         preparePage(contractAddress.value, appId.value, ethUrl);
     } else {
@@ -212,6 +203,10 @@ startBtn.addEventListener("click", () => {
         appId.reportValidity();
         ethereumAddress.reportValidity();
     }
+}
+
+startBtn.addEventListener("click", () => {
+    getValuesAndPrepare(appId.value)
 });
 
 window.addEventListener('load', function() {
