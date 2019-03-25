@@ -14,6 +14,10 @@
         <input type="text" id="contract-address" class="form-control" aria-label="Contract Address" aria-describedby="basic-addon1" value="0xf008c29bb1fabd1eb1ea73b2410f523a5c213f19" required>
     </div>
     <div class="form-group">
+        <label for="private-key">Private Key</label>
+        <input type="text" id="private-key" class="form-control" aria-label="Private Key" aria-describedby="basic-addon1">
+    </div>
+    <div class="form-group">
         <label for="app-id">App ID</label>
         <input type="text" class="form-control" id="app-id" placeholder="App ID" aria-label="App ID" aria-describedby="basic-addon1" required value="3">
     </div>
@@ -33,6 +37,7 @@
     <div class="row" id="main" hidden>
         <div class="col-sm-4">
             <h3>App ID: <span id="show-app-id"></span></h3>
+            <h3>Private Key: <span id="show-private-key"></span></h3>
             <div class="p-2">
                 <label>Status:</label>
                 <div id="status">

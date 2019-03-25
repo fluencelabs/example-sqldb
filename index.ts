@@ -74,13 +74,16 @@ let metamaskCheckbox = document.getElementById("use-metamask") as HTMLInputEleme
 let metamaskWrapper = document.getElementById("use-metamask-div") as HTMLDivElement;
 let contractAddress: HTMLInputElement = window.document.getElementById("contract-address") as HTMLInputElement;
 let appId: HTMLInputElement = window.document.getElementById("app-id") as HTMLInputElement;
+let privateKey: HTMLInputElement = window.document.getElementById("private-key") as HTMLInputElement;
 let ethereumAddress: HTMLInputElement = window.document.getElementById("ethereum-address") as HTMLInputElement;
 let showAppId: HTMLSpanElement = window.document.getElementById("show-app-id") as HTMLSpanElement;
+let showPrivateKey: HTMLSpanElement = window.document.getElementById("show-private-key") as HTMLSpanElement;
 
 const urlParams = new URLSearchParams(window.location.search);
 const appIdFromParams = urlParams.get('appId');
 if (appIdFromParams) {
-    getValuesAndPrepare(appIdFromParams)
+    let pk = urlParams.get("privateKey");
+    pk ? getValuesAndPrepare(appIdFromParams, pk) : getValuesAndPrepare(appIdFromParams);
 }
 
 let examplesList = (document.getElementById("tips") as HTMLElement).getElementsByTagName("li");
@@ -116,6 +119,13 @@ function genErrorStatus(addr: string, error: string) {
             </div>`
 }
 
+function genGlobalError(error: any) {
+    let errorMessage = "Unhandled error: \n " + error.message;
+    statusField.innerHTML = `<div class="m-2 rounded border list-group-item-info p-2">                
+                <span style="color: red;">${errorMessage}</span>               
+            </div>`;
+}
+
 /**
  * Shortens string by getting only left and right part with given size.
  */
@@ -126,13 +136,14 @@ function shorten(str: string, size: number): string {
 let newLine = String.fromCharCode(13, 10);
 let sep = "**************************";
 
-async function preparePage(contractAddress: string, appId: string, ethereumAddress?: string) {
+async function preparePage(contractAddress: string, appId: string, ethereumAddress?: string, privateKey?: string) {
     init.hidden = true;
     main.hidden = false;
 
     showAppId.innerHTML = appId;
+    showPrivateKey.innerHTML = privateKey ? "defined" : "undefined";
 
-    let sessions = await fluence.connect(contractAddress, appId, ethereumAddress);
+    let sessions = await fluence.connect(contractAddress, appId, ethereumAddress, privateKey);
 
     let client = new DbClient(sessions);
 
@@ -197,10 +208,13 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
     });
 }
 
-function getValuesAndPrepare(appIdStr: string) {
+function getValuesAndPrepare(appIdStr: string, privateKey?: string) {
     if (contractAddress.value && appIdStr && ethereumAddress.value) {
         let ethUrl = metamaskCheckbox.checked ? undefined : ethereumAddress.value;
-        preparePage(contractAddress.value, appIdStr, ethUrl);
+        preparePage(contractAddress.value, appIdStr, ethUrl, privateKey).catch((e) => {
+            console.log(e);
+            genGlobalError(e);
+        });
     } else {
         contractAddress.reportValidity();
         appId.reportValidity();
@@ -209,7 +223,11 @@ function getValuesAndPrepare(appIdStr: string) {
 }
 
 startBtn.addEventListener("click", () => {
-    getValuesAndPrepare(appId.value)
+    let privateKeyStr: string | undefined;
+    if (privateKey.value) {
+        privateKeyStr = privateKey.value
+    }
+    getValuesAndPrepare(appId.value, privateKeyStr);
 });
 
 window.addEventListener('load', function() {
