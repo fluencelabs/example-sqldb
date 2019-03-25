@@ -75,6 +75,7 @@ let metamaskWrapper = document.getElementById("use-metamask-div") as HTMLDivElem
 let contractAddress: HTMLInputElement = window.document.getElementById("contract-address") as HTMLInputElement;
 let appId: HTMLInputElement = window.document.getElementById("app-id") as HTMLInputElement;
 let ethereumAddress: HTMLInputElement = window.document.getElementById("ethereum-address") as HTMLInputElement;
+let showAppId: HTMLSpanElement = window.document.getElementById("show-app-id") as HTMLSpanElement;
 
 const urlParams = new URLSearchParams(window.location.search);
 const appIdFromParams = urlParams.get('appId');
@@ -128,6 +129,8 @@ let sep = "**************************";
 async function preparePage(contractAddress: string, appId: string, ethereumAddress?: string) {
     init.hidden = true;
     main.hidden = false;
+
+    showAppId.innerHTML = appId;
 
     let sessions = await fluence.connect(contractAddress, appId, ethereumAddress);
 
@@ -197,7 +200,7 @@ async function preparePage(contractAddress: string, appId: string, ethereumAddre
 function getValuesAndPrepare(appIdStr: string) {
     if (contractAddress.value && appIdStr && ethereumAddress.value) {
         let ethUrl = metamaskCheckbox.checked ? undefined : ethereumAddress.value;
-        preparePage(contractAddress.value, appId.value, ethUrl);
+        preparePage(contractAddress.value, appIdStr, ethUrl);
     } else {
         contractAddress.reportValidity();
         appId.reportValidity();
