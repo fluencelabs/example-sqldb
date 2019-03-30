@@ -248,3 +248,18 @@ window.addEventListener('load', function() {
         });
     }
 });
+
+console.log(`
+
+Please note that this is a shared instance of the SQL DB, and data may be altered by other users.
+
+You can find docs at https://fluence.dev
+
+Check out http://dash.fluence.network to deploy your own SQL DB instance
+Check out http://sql.fluence.network to play with your data via web interface
+Check out https://github.com/fluence/tutorials for more Fluence examples
+
+If you have any questions, feel free to join our Discord https://fluence.chat :)
+
+
+`)
