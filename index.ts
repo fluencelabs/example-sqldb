@@ -259,7 +259,7 @@ You can find docs at https://fluence.dev
 
 Check out http://dash.fluence.network to deploy your own SQL DB instance
 Check out http://sql.fluence.network to play with your data via web interface
-Check out https://github.com/fluence/tutorials for more Fluence examples
+Check out https://github.com/fluencelabs/tutorials for more Fluence examples
 
 If you have any questions, feel free to join our Discord https://fluence.chat :)
 
