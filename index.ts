@@ -251,6 +251,8 @@ window.addEventListener('load', function() {
 
 console.log(`
 
+Thank you for trying Fluence out! Please, break something.
+
 Please note that this is a shared instance of the SQL DB, and data may be altered by other users.
 
 You can find docs at https://fluence.dev
