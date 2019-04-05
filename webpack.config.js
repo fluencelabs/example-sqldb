@@ -38,7 +38,7 @@ module.exports = {
         fs: 'empty'
     },
     plugins: [
-        new CleanWebpackPlugin(['bundle']),
+        new CleanWebpackPlugin(),
         new CheckerPlugin(),
         new CopyWebpackPlugin([{
             from: './*.html'
